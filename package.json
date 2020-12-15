@@ -1,0 +1,23 @@
+{
+  "name": "mqtt-virtual-sensor",
+  "version": "1.0.0",
+  "description": "virtual simulator project",
+  "main": "app.js",
+  "dependencies": {
+    "mqtt": "^4.2.6"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "test.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mohgeis/mqtt-virtual-sensor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mohgeis/mqtt-virtual-sensor/issues"
+  },
+  "homepage": "https://github.com/mohgeis/mqtt-virtual-sensor#readme"
+}
