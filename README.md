@@ -27,7 +27,7 @@ $ npm install mqtt --save
 ```
 
 
-### Todos before the first release
+# Todos before the first release
 
  - improve the virtual sensor signal structure.
  - add sensors aggregator.
