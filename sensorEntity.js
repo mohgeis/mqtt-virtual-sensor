@@ -4,19 +4,26 @@ class sensorEntity {
     constructor(name, type) {
         this.name = name;
         this.type = type;
-        this.attributes = [];
+        this.attributes = {};
         this.setParkingSensorAttributes();
         console.log("new parking sensor created: ", name);
     }
     addAttribute (name, value) {
-        var attr = new sensorAttribute(name, value);
-        this.attributes.push(attr);
+        this.attributes[name] = value;
     };
     setParkingSensorAttributes() {
-        this.addAttribute('avail', 1);
+        this.addAttribute('avail', true);
         this.addAttribute('status', "OK");
         this.addAttribute('operation', "ON");
     };
+
+    enable() {
+        return this.attributes['avail'] = true;
+    }
+    disable() {
+        return this.attributes['avail'] =  false;
+        console.log('sensor disabled')
+    }
 }
 
 module.exports = sensorEntity;
