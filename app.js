@@ -6,6 +6,7 @@ const express_app = express();
 const mqtt_client = mqtt.connect('mqtt://broker.hivemq.com')
 
 var sensor_1 = new sensorEntity('slot-1', 'parking-sensor');
+var sensor_2 = new sensorEntity('slot-2', 'parking-sensor');
 var mqtt_lock = false;
 
 mqtt_client.on('connect', () => {
@@ -24,7 +25,7 @@ function sendStateUpdate(sensorData) {
 async function loopSendingUpdates() {
     for (; ;) {
         if (!mqtt_lock){
-            sendStateUpdate(sensor_1);
+            sendStateUpdate([sensor_1, sensor_2]);
         }
         await sleep(3000);
     }
@@ -49,8 +50,8 @@ express_app.get('/unlock', (req, res) => {
     res.send('Unlocking mqtt messages');
 });
 
-express_app.get('/test', (req, res) => {
-    res.send('An alligator approaches!');
+express_app.get('/help', (req, res) => {
+    res.send('virtual sensor api: \n /lock \n /unlock');
 });
 
 express_app.get('/on', (req, res) => {
