@@ -12,17 +12,19 @@ class sensorEntity {
         this.attributes[name] = value;
     };
     setParkingSensorAttributes() {
-        this.addAttribute('avail', true);
+        this.addAttribute('avail', 1);
         this.addAttribute('status', "OK");
         this.addAttribute('operation', "ON");
     };
 
     enable() {
-        return this.attributes['avail'] = true;
-    }
+        return this.attributes['avail'] = 1;
+    };
     disable() {
-        return this.attributes['avail'] =  false;
-        console.log('sensor disabled')
+        return this.attributes['avail'] =  0;
+    };
+    set(state) {
+        this.attributes['avail'] = state;
     }
 }
 
