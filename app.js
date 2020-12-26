@@ -1,5 +1,6 @@
 const sensorEntity = require('./sensorEntity');
 const sensorUser = require('./user');
+var path = require('path');
 
 const express = require('express');
 const mqtt = require('mqtt');
@@ -43,7 +44,7 @@ async function SendingUpdates() {
 
 var cors = require('cors');
 express_app.use(cors());
-//express_app.use(express.static(path.join(__dirname, 'client/v-sensor-controller')));
+express_app.use(express.static(path.join(__dirname, 'client/v-sensor-controller')));
 
 express_app.get('/lock/:lock', (req, res) => {
     if (req.params.lock.toLocaleLowerCase === 'true') {
@@ -120,7 +121,9 @@ express_app.get('/test', (req, res) => {
 });
 
 express_app.get ('*', (req,res) => {
-    res.sendFile(path.join(__dirname+'/client/v-sensor-controller/build/index.html'));
+    var htmlPage = path.join(__dirname,'/client/v-sensor-controller/build/index.html');
+    console.log(htmlPage);
+    res.sendFile(htmlPage);
 })
 
 let port = process.env.PORT || 5000;
