@@ -1,5 +1,3 @@
-const sensorAttribute = require('./sensorAttribute');
-
 class sensorEntity {
     constructor(name, type) {
         this.name = name;

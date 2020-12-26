@@ -41,9 +41,9 @@ async function SendingUpdates() {
 }
 
 
-express_app.get('/', (req, res) => {
-    res.send('virtual sensor is running.');
-});
+var cors = require('cors');
+express_app.use(cors());
+//express_app.use(express.static(path.join(__dirname, 'client/v-sensor-controller')));
 
 express_app.get('/lock/:lock', (req, res) => {
     if (req.params.lock.toLocaleLowerCase === 'true') {
@@ -57,7 +57,7 @@ express_app.get('/lock/:lock', (req, res) => {
     }
 });
 
-express_app.get('/adduser/:count/:type', (req, res) => {
+express_app.get('/user/add/:count/:type', (req, res) => {
     var type = req.params.type;
     var count = req.params.count;
     if (count > max_sensors_per_user) {
@@ -70,7 +70,7 @@ express_app.get('/adduser/:count/:type', (req, res) => {
     res.send(newUser);
 });
 
-express_app.get('/sensor/add/:userId', (req, res) => {
+express_app.get('/user/:userId/sensor/add', (req, res) => {
     var userId = parseInt(req.params.userId);
     if (!(userId in users)){
         res.send('user doesnt exists');
@@ -80,7 +80,7 @@ express_app.get('/sensor/add/:userId', (req, res) => {
     res.send(newSensor);
 });
 
-express_app.get('/sensor/del/:userId/:sensorId', (req, res) => {
+express_app.get('user/:userId/sensor/:sensorId/del', (req, res) => {
     var userId = parseInt(req.params.userId);
     var sensorId = parseInt(req.params.sensorId);
     if (!(userId in users)){
@@ -94,7 +94,7 @@ express_app.get('/sensor/del/:userId/:sensorId', (req, res) => {
     res.send('sensor: ' + sensorId + " has been removed");
 });
 
-express_app.get('/set/:userId/:sensorId/:state', (req, res) => {
+express_app.get('/user/:userId/sensor/:sensorId/set/:state', (req, res) => {
     var userId = parseInt(req.params.userId);
     var sensorId = parseInt(req.params.sensorId); 
     var state = parseInt(req.params.state);
@@ -113,9 +113,16 @@ express_app.get('/help', (req, res) => {
     res.send('virtual sensor api: \n /lock/true \n /set/<sonsor_id>/true');
 });
 
-let port = process.env.PORT;
-if (port == null || port == "") {
-    port = 8000;
-}
-express_app.listen(port, () => console.log('Gator app listening on port 8000!'));
+express_app.get('/test', (req, res) => {
+    res.json({
+        "hello": ["Mohamed", "Geis"]
+    })
+});
+
+express_app.get ('*', (req,res) => {
+    res.sendFile(path.join(__dirname+'/client/v-sensor-controller/build/index.html'));
+})
+
+let port = process.env.PORT || 5000;
+express_app.listen(port, () => console.log('Sensor app listening on port ', port,'!'));
 

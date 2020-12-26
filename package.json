@@ -4,11 +4,17 @@
   "description": "virtual simulator project",
   "main": "app.js",
   "dependencies": {
+    "concurrently": "^5.3.0",
+    "cors": "^2.8.5",
     "express": "^4.17.1",
     "mqtt": "^4.2.6"
   },
   "devDependencies": {},
   "scripts": {
+    "heroku-postbuild": "cd client/v-sensor-controller && npm install && npm run build",
+    "backend": "node app.js",
+    "frontend": "cd client/v-sensor-controller && npm start",
+    "start-conc": "concurrently \"npm run backend\" \"npm run frontend\"",
     "start": "node app.js",
     "test": "node test.js"
   },
