@@ -10,6 +10,7 @@ const max_sensors_per_user = 10;
 const express_app = express();
 const mqtt_client = mqtt.connect('mqtt://broker.hivemq.com')
 const interval = 5000;
+const user_validity_timeout = 60 * 60 * 1000;
 var mqtt_lock = false;
 var sendSensorsUpdate;
 
@@ -41,10 +42,14 @@ async function SendingUpdates() {
     }
 }
 
+function removeUser (userId) { 
+    console.log("removing user: "+ userId);
+    delete users[userId];
+  }
 
 var cors = require('cors');
 express_app.use(cors());
-express_app.use(express.static(path.join(__dirname, 'client/v-sensor-controller')));
+express_app.use(express.static(path.join(__dirname, '/client/v-sensor-controller/build')));
 
 express_app.get('/lock/:lock', (req, res) => {
     if (req.params.lock.toLocaleLowerCase === 'true') {
@@ -68,6 +73,7 @@ express_app.get('/user/add/:count/:type', (req, res) => {
     }
     var newUser = new sensorUser(count, type);
     users[newUser.userId] = newUser;
+    setTimeout ( () => {removeUser(newUser.userId)}, user_validity_timeout );
     res.send(newUser);
 });
 
@@ -79,6 +85,16 @@ express_app.get('/user/:userId/sensor/add', (req, res) => {
     }
     var newSensor = users[userId].addSensor();
     res.send(newSensor);
+});
+
+express_app.get('/user/:userId/sensor', (req, res) => {
+    var userId = parseInt(req.params.userId);
+    if (!(userId in users)){
+        res.send('user doesnt exists');
+        return;
+    }
+    var sensorsList = users[userId];
+    res.send(sensorsList);
 });
 
 express_app.get('user/:userId/sensor/:sensorId/del', (req, res) => {
@@ -120,7 +136,7 @@ express_app.get('/test', (req, res) => {
     })
 });
 
-express_app.get ('*', (req,res) => {
+express_app.get ('/', (req,res) => {
     var htmlPage = path.join(__dirname,'/client/v-sensor-controller/build/index.html');
     console.log(htmlPage);
     res.sendFile(htmlPage);
