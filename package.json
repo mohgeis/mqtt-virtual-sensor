@@ -11,7 +11,7 @@
   },
   "devDependencies": {},
   "scripts": {
-    "heroku-postbuild": "cd client/v-sensor-controller && npm install && npm run build",
+    "heroku-postbuild": "cd client/sensor-controller && npm install && npm run build",
     "backend": "node app.js",
     "frontend": "cd client/v-sensor-controller && npm start",
     "start-conc": "concurrently \"npm run backend\" \"npm run frontend\"",
