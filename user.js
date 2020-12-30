@@ -23,8 +23,15 @@ class user {
         this.sensorsCount++ ;
         return newSensor;
     };
+
     removeSensor(id) {
-        this.sensors.splice(id , 1);
+        var newSensors = this.sensors.filter( s => s.sensorId != id);
+        if (newSensors.length === this.sensors.length){
+            console.log ("no user has been removed");
+            return false;
+        }
+        this.sensors = newSensors;
+        return true;
     };
 
     set(state) {

@@ -11,13 +11,17 @@ const express_app = express();
 const mqtt_client = mqtt.connect('mqtt://broker.hivemq.com')
 const interval = 5000;
 const user_validity_timeout = 60 * 60 * 1000;
-var mqtt_lock = false;
 var sendSensorsUpdate;
 
 var users = {};
 
+var cors = require('cors');
+express_app.use(cors());
+express_app.use(express.static(path.join(__dirname, '/client/sensor-controller/build')));
+
+
 mqtt_client.on('connect', () => {
-    mqtt_client.publish('parking/connected', 'true')
+    mqtt_client.publish('virtualsensor/connected', 'true')
     console.log('connected')
     start();
 })
@@ -30,100 +34,96 @@ function stop() {
     clearInterval(sendSensorsUpdate);
 }
 
+// send mqtt msg to all users in the list.
 async function SendingUpdates() {
     var d = new Date();
     console.log('publish sensors updates: ', d)
-    if (!mqtt_lock) {
-        for (userKey in users) {
-            console.log('sending user: ', userKey)
-            console.log('sending state:', JSON.stringify(users[userKey]))
-            mqtt_client.publish('vsensor/' + userKey, JSON.stringify(users[userKey]))
-        }
+    console.log('there are: ', Object.keys(users).length, " users");
+    for (userKey in users) {
+        console.log('User: ', userKey)
+        console.log('sending state:', JSON.stringify(users[userKey]))
+        mqtt_client.publish('vsensor/' + userKey, JSON.stringify(users[userKey]))
     }
 }
 
-function removeUser (userId) { 
-    console.log("removing user: "+ userId);
+// remove user from the list
+function removeUser(userId) {
+    console.log("removing user: " + userId);
     delete users[userId];
-  }
+}
 
-var cors = require('cors');
-express_app.use(cors());
-express_app.use(express.static(path.join(__dirname, '/client/v-sensor-controller/build')));
-
-express_app.get('/lock/:lock', (req, res) => {
-    if (req.params.lock.toLocaleLowerCase === 'true') {
-        mqtt_lock = true;
-        res.send('Locking mqtt messages');
-    } else if (req.params.lock.toLocaleLowerCase === 'false') {
-        mqtt_lock = false;
-        res.send('Unlocking mqtt messages');
-    } else {
-        res.send('request is unrecognized!');
-    }
-});
-
+// add new user api
 express_app.get('/user/add/:count/:type', (req, res) => {
     var type = req.params.type;
     var count = req.params.count;
     if (count > max_sensors_per_user) {
         count = max_sensors_per_user;
     } else if (count < 0) {
-        res.send('cannot create negetive number of sensors');
+        res.status(500).send('cannot create negetive number of sensors');
     }
     var newUser = new sensorUser(count, type);
     users[newUser.userId] = newUser;
-    setTimeout ( () => {removeUser(newUser.userId)}, user_validity_timeout );
+    setTimeout(() => { removeUser(newUser.userId) }, user_validity_timeout);
     res.send(newUser);
 });
 
+// add sensor to existing user api
 express_app.get('/user/:userId/sensor/add', (req, res) => {
     var userId = parseInt(req.params.userId);
-    if (!(userId in users)){
-        res.send('user doesnt exists');
+    if (!(userId in users)) {
+        res.status(501).send('user doesnt exists');
         return;
     }
-    var newSensor = users[userId].addSensor();
-    res.send(newSensor);
+    users[userId].addSensor();
+    res.send(users[userId]);
 });
 
+// get all sensors of an existing user api
 express_app.get('/user/:userId/sensor', (req, res) => {
     var userId = parseInt(req.params.userId);
-    if (!(userId in users)){
-        res.send('user doesnt exists');
+    if (!(userId in users)) {
+        res.status(500).send('user doesnt exists');
         return;
     }
-    var sensorsList = users[userId];
-    res.send(sensorsList);
+    res.send(users[userId]);
 });
 
-express_app.get('user/:userId/sensor/:sensorId/del', (req, res) => {
+// delete a sensor from an existing user api
+express_app.get('/user/:userId/sensor/:sensorId/del', (req, res) => {
+    var userId = parseInt(req.params.userId);
+    var sensorId = req.params.sensorId;
+    if (!(userId in users)) {
+        res.status(500).send('user doesnt exists');
+        return;
+    }
+    if (users[userId].removeSensor(sensorId)){
+        res.send(users[userId]);
+        return;
+    } else {
+        res.status(500).send('sensor does not exist');
+    }
+});
+
+// set sensor value api
+express_app.get('/user/:userId/sensor/:sensorId/set/:value', (req, res) => {
     var userId = parseInt(req.params.userId);
     var sensorId = parseInt(req.params.sensorId);
-    if (!(userId in users)){
-        res.send('user doesnt exists');
+    var value = parseInt(req.params.value);
+    console.log(userId, sensorId, value);
+    if (!(userId in users)) {
+        res.status(500).send('user doesnt exists');
         return;
     }
-    if (sensorId < 0 || sensorId >= users[userId].sensors.length ) {
-        res.send('sensor id: ' + sensorId + " is out of range");
-    }
-    users[userId].removeSensor(sensorId);
-    res.send('sensor: ' + sensorId + " has been removed");
-});
-
-express_app.get('/user/:userId/sensor/:sensorId/set/:state', (req, res) => {
-    var userId = parseInt(req.params.userId);
-    var sensorId = parseInt(req.params.sensorId); 
-    var state = parseInt(req.params.state);
-    if (!(userId in users)){
-        res.send('user doesnt exists');
+    if (isNaN(sensorId) || isNaN(value)) {
+        res.send('invalid sensor id: ' + sensorId + " or value: " + value);
         return;
     }
-    if (sensorId < 0 || sensorId >= users[userId].sensors.length || !(state in [0, 1])) {
-        res.send('unkown request id: ' + id + " with state: " + state);
+    if (sensorId < 0 || sensorId >= users[userId].sensors.length) {
+        res.send('unkown sensor id: ' + sensorId);
+        return;
     }
-    users[userId].sensors[sensorId].set(state);
-    res.send('sensor-' + sensorId + " is set to: " + state);
+    users[userId].sensors[sensorId].set(value);
+    res.send('sensor-' + sensorId + " is set to: " + value);
 });
 
 express_app.get('/help', (req, res) => {
@@ -136,12 +136,12 @@ express_app.get('/test', (req, res) => {
     })
 });
 
-express_app.get ('/', (req,res) => {
-    var htmlPage = path.join(__dirname,'/client/v-sensor-controller/build/index.html');
+express_app.get('/', (req, res) => {
+    var htmlPage = path.join(__dirname, '/client/sensor-controller/build/index.html');
     console.log(htmlPage);
     res.sendFile(htmlPage);
 })
 
 let port = process.env.PORT || 5000;
-express_app.listen(port, () => console.log('Sensor app listening on port ', port,'!'));
+express_app.listen(port, () => console.log('Sensor app listening on port ', port, '!'));
 

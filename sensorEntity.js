@@ -1,6 +1,10 @@
+var lib = require('./lib.js')
+
 class sensorEntity {
     constructor(name, type) {
         this.name = name;
+        this.sensorId = lib.makeid(5);
+        this.value = 0;
         this.type = type;
         this.attributes = {};
         this.setParkingSensorAttributes();
@@ -9,20 +13,20 @@ class sensorEntity {
     addAttribute (name, value) {
         this.attributes[name] = value;
     };
-    setParkingSensorAttributes() {
-        this.addAttribute('avail', 1);
-        this.addAttribute('status', "OK");
-        this.addAttribute('operation', "ON");
+
+    setParkingSensorAttributes(status="OK", oper="ON") {
+        this.addAttribute('status', status);  //sensor health check status.
+        this.addAttribute('operation', oper); //turn on/off the sensor.
     };
 
     enable() {
-        return this.attributes['avail'] = 1;
+        return this.attributes['operation'] = "ON";
     };
     disable() {
-        return this.attributes['avail'] =  0;
+        return this.attributes['operation'] =  "OFF";
     };
-    set(state) {
-        this.attributes['avail'] = state;
+    set(value=0) {
+        this.value = value;
     }
 }
 
