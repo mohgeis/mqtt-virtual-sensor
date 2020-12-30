@@ -1,12 +1,11 @@
 const sensorEntity = require('./sensorEntity');
 const sensorUser = require('./user');
 var path = require('path');
-
 const express = require('express');
 const mqtt = require('mqtt');
 const { request } = require('express');
 const user = require('./user');
-const max_sensors_per_user = 10;
+const max_sensors_per_user = 20;
 const express_app = express();
 const mqtt_client = mqtt.connect('mqtt://broker.hivemq.com')
 const interval = 5000;
@@ -34,15 +33,17 @@ function stop() {
     clearInterval(sendSensorsUpdate);
 }
 
-// send mqtt msg to all users in the list.
+// send mqtt msg to all users in the users' list.
 async function SendingUpdates() {
     var d = new Date();
     console.log('publish sensors updates: ', d)
     console.log('there are: ', Object.keys(users).length, " users");
     for (userKey in users) {
         console.log('User: ', userKey)
-        console.log('sending state:', JSON.stringify(users[userKey]))
-        mqtt_client.publish('vsensor/' + userKey, JSON.stringify(users[userKey]))
+        var mqttTransmitMsg = JSON.stringify(users[userKey]);
+        var extraLogMsg = mqttTransmitMsg.length > 100 ? " ....}" : "";
+        console.log('sending state:', mqttTransmitMsg.substring(0,100), extraLogMsg)
+        mqtt_client.publish('vsensor/' + userKey, mqttTransmitMsg)
     }
 }
 
@@ -52,7 +53,7 @@ function removeUser(userId) {
     delete users[userId];
 }
 
-// add new user api
+// add new user
 express_app.get('/user/add/:count/:type', (req, res) => {
     var type = req.params.type;
     var count = req.params.count;
@@ -67,14 +68,18 @@ express_app.get('/user/add/:count/:type', (req, res) => {
     res.send(newUser);
 });
 
-// add sensor to existing user api
-express_app.get('/user/:userId/sensor/add', (req, res) => {
+// add sensor to existing user
+express_app.get('/user/:userId/sensor/add/:comments?', (req, res) => {
     var userId = parseInt(req.params.userId);
+    var comments = req.params.comments;
     if (!(userId in users)) {
         res.status(501).send('user doesnt exists');
         return;
     }
-    users[userId].addSensor();
+    if (users[userId].sensors.length >= max_sensors_per_user) {
+        res.status(401).send("max number of sensors is reached!")
+    }
+    users[userId].addSensor(comments=comments);
     res.send(users[userId]);
 });
 
@@ -107,23 +112,14 @@ express_app.get('/user/:userId/sensor/:sensorId/del', (req, res) => {
 // set sensor value api
 express_app.get('/user/:userId/sensor/:sensorId/set/:value', (req, res) => {
     var userId = parseInt(req.params.userId);
-    var sensorId = parseInt(req.params.sensorId);
+    var sensorId = req.params.sensorId;
     var value = parseInt(req.params.value);
-    console.log(userId, sensorId, value);
     if (!(userId in users)) {
         res.status(500).send('user doesnt exists');
         return;
     }
-    if (isNaN(sensorId) || isNaN(value)) {
-        res.send('invalid sensor id: ' + sensorId + " or value: " + value);
-        return;
-    }
-    if (sensorId < 0 || sensorId >= users[userId].sensors.length) {
-        res.send('unkown sensor id: ' + sensorId);
-        return;
-    }
-    users[userId].sensors[sensorId].set(value);
-    res.send('sensor-' + sensorId + " is set to: " + value);
+    users[userId].setSensorValue(sensorId, value);
+    res.send(users[userId]);
 });
 
 express_app.get('/help', (req, res) => {
@@ -132,13 +128,12 @@ express_app.get('/help', (req, res) => {
 
 express_app.get('/test', (req, res) => {
     res.json({
-        "hello": ["Mohamed", "Geis"]
+        "hello": ["Developer", "M. Geis"]
     })
 });
 
 express_app.get('/', (req, res) => {
     var htmlPage = path.join(__dirname, '/client/sensor-controller/build/index.html');
-    console.log(htmlPage);
     res.sendFile(htmlPage);
 })
 

@@ -24,16 +24,17 @@ class App extends Component {
   }
 
   // Toggle Sensor Complete
-  markSensorComplete = id => {
-    this.setState({
-      userId: this.state.userId,
-      sensors: this.state.sensors.map(sensor => {
-        if (sensor.sensorId === id) {
-          sensor.value++;
-        }
-        return sensor;
+  markSensorComplete = data => {
+    console.log("set sensor: ", "/user/" + this.state.userId + "/sensor/" + data.id + "/set/" + data.value)
+    axios.get("/user/" + this.state.userId + "/sensor/" + data.id + "/set/" + data.value)
+      .then(res => {
+        console.log("response: ", res.data.sensors);
+        this.setState({ sensors: res.data.sensors, userId: this.state.userId });
       })
-    });
+      .catch(err => {
+        this.checkConnection();
+      });
+
   };
 
   // Delete Sensor
@@ -52,7 +53,7 @@ class App extends Component {
 
   // Add Todo
   addSensor = title => {
-    axios.get('/user/' + this.state.userId + '/sensor/add')
+    axios.get('/user/' + this.state.userId + '/sensor/add/' + title)
       .then(res => {
         this.setState({
           userId: this.state.userId,

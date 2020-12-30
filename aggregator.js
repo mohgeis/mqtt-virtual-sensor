@@ -1,1 +1,0 @@
-// a library aggregate all sensors into 1 object

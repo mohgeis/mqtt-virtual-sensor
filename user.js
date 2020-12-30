@@ -13,12 +13,13 @@ class user {
 
     createSensorsList(sensorsCount) {
         for(var i = 0; i < sensorsCount; i++) {
-            this.addSensor(i);
+            this.addSensor();
         }
     };
 
-    addSensor(id = this.sensorsCount) {
-        var newSensor = new sensorEntity('sensor-' + id , this.sensorType );
+    addSensor(comments="") {
+        var id = this.sensorsCount;
+        var newSensor = new sensorEntity('sensor-' + id , this.sensorType, comments );
         this.sensors.push(newSensor);
         this.sensorsCount++ ;
         return newSensor;
@@ -32,6 +33,20 @@ class user {
         }
         this.sensors = newSensors;
         return true;
+    };
+
+    setSensorValue(id, value) {
+        console.log("setting sensor: ", id , " with value: ", value)
+        var updated = false;
+        var newSensors = this.sensors.map( s => {
+            if (s.sensorId === id) {
+                s.value = value;
+                updated = true;
+            }
+            return s;
+        });
+        this.sensors = newSensors;
+        return updated;
     };
 
     set(state) {

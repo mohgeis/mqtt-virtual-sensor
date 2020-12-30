@@ -2,6 +2,8 @@
 This is a simplified MQTT virtual sensor 
 [![Build Status](https://travis-ci.org/joemccann/dillinger.svg?branch=master)](https://travis-ci.org/joemccann/dillinger)
 
+you can also try the online version deployed at [heroku](https://virtual-sensor.herokuapp.com/) server.
+
 # New Features!
 
   - First version.

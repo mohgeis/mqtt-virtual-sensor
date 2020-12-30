@@ -1,14 +1,15 @@
 var lib = require('./lib.js')
 
 class sensorEntity {
-    constructor(name, type) {
+    constructor(name, type, comments="") {
         this.name = name;
         this.sensorId = lib.makeid(5);
         this.value = 0;
+        this.comments = comments;
         this.type = type;
         this.attributes = {};
         this.setParkingSensorAttributes();
-        console.log("new parking sensor created: ", name);
+        console.log("New sensor is created: ", name);
     }
     addAttribute (name, value) {
         this.attributes[name] = value;

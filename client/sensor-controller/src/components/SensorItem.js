@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
+import { FaCarSide, FaParking } from 'react-icons/fa';
 
 export class SensorItem extends Component {
   getStyle = () => {
@@ -15,16 +16,25 @@ export class SensorItem extends Component {
     console.log(this.props.sensor);
   };
 
+  getValue(value){
+    if (value === 0) return 1;
+    return 0;
+  }
+
   render() {
     const { sensorId, name, value } = this.props.sensor;
+    const sensorData = {id: sensorId, value: this.getValue(value)};
     return (
       <div style={this.getStyle()}>
         <p>
           <input
             type="checkbox"
             defaultChecked={value}
-            onChange={this.props.markSensorComplete.bind(this, sensorId)}
-          />{" "}
+            onChange={this.props.markSensorComplete.bind(this, sensorData)}
+          />
+          {"  "}
+          {this.props.sensor.value > 0 ? <FaCarSide /> : <FaParking /> }
+          {"  "}
           {name}
           <button onClick={this.props.delSensor.bind(this, sensorId)} style={btnStyle}>
             x
@@ -51,5 +61,6 @@ const btnStyle = {
   cursor: "pointer",
   float: "right",
 };
+
 
 export default SensorItem;
