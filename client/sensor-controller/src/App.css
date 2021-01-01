@@ -54,3 +54,8 @@ a {
 .btn:hover {
   background: #666;
 }
+
+li{
+  margin:5px 0;
+  margin-left:20px;
+}

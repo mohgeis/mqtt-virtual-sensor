@@ -43,7 +43,7 @@ async function SendingUpdates() {
         var mqttTransmitMsg = JSON.stringify(users[userKey]);
         var extraLogMsg = mqttTransmitMsg.length > 100 ? " ....}" : "";
         console.log('sending state:', mqttTransmitMsg.substring(0,100), extraLogMsg)
-        mqtt_client.publish('vsensor/' + userKey, mqttTransmitMsg)
+        mqtt_client.publish('virtualsensor/' + userKey, mqttTransmitMsg)
     }
 }
 
