@@ -25,4 +25,5 @@ $ npm start
 Then open a page in the browser and navigate to localhost:5000/
 
 you should see this page:
-[![interface](./virtualsensors.PNG)]
+
+[![interface](./virtualsensors.PNG)](https://virtual-sensor.herokuapp.com/)
