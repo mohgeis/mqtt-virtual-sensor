@@ -20,18 +20,9 @@ finally install and run the virtual sensor
 ```
 $ cd mqtt-virtual-sensor
 $ npm install
-$ node app.js
+$ npm start
 ```
+Then open a page in the browser and navigate to localhost:5000/
 
-if you face issues with the installation, then try to install [Mqtt](https://www.npmjs.com/package/mqtt) library separately:
-```
-$ npm install mqtt --save
-```
-
-
-# Todos before the first release
-
- - improve the virtual sensor signal structure.
- - add sensors aggregator.
- - add a control api.
- - add a graphical control dashboard.
+you should see this page:
+[![interface](./virtualsensors.PNG)]
